@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthSessionController;
+use App\Http\Controllers\Api\RawPollController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -12,6 +13,8 @@ Route::post('login', [AuthSessionController::class, "store"]);
 
 /** ---------- protected api route :: BEGIN ---------- */
 Route::middleware('auth:sanctum')->group(function () {
+
+    Route::apiResource('raw-polls',RawPollController::class);
 
     Route::post('logout',[AuthSessionController::class,'destroy']);
 });
