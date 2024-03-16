@@ -18,7 +18,7 @@ class RawPollController extends Controller
      */
     public function index()
     {
-        return $this->sendSuccess(RawPollResource::collection(RawPoll::all()),StatusCodeEnum::OK);
+        return $this->sendSuccess("Raw Poll Collection",RawPollResource::collection(RawPoll::all()),StatusCodeEnum::OK);
     }
 
     /**
