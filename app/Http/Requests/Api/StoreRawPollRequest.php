@@ -24,9 +24,8 @@ class StoreRawPollRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'img' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-            'latitude' => ['required'],
-            'longitude' => ['required'],
+            'img' => ['required','array'],
+            'img.*' => ['required','image','mimes:jpeg,png,jpg','max:2048']
         ];
     }
 

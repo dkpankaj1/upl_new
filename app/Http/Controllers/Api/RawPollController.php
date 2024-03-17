@@ -9,16 +9,27 @@ use App\Http\Resources\RawPollResource;
 use App\Models\RawPoll;
 use App\Traits\HttpResponses;
 use Illuminate\Http\Request;
+use Intervention\Image\Collection;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class RawPollController extends Controller
 {
     use HttpResponses;
+    protected $imageManager;
+
+    function __construct()
+    {
+        $this->imageManager = new ImageManager(new Driver());
+    }
+
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return $this->sendSuccess("Raw Poll Collection",RawPollResource::collection(RawPoll::all()),StatusCodeEnum::OK);
+        return $this->sendSuccess("Raw Poll Collection", RawPollResource::collection(RawPoll::all()), StatusCodeEnum::OK);
     }
 
     /**
@@ -34,21 +45,30 @@ class RawPollController extends Controller
      */
     public function store(StoreRawPollRequest $request)
     {
+
         try {
-            //code...
-            $data = [
-                'latitude' => $request->input('latitude'),
-                'longitude' => $request->input('longitude'),
-                'created_by' => auth()->user()->getAuthIdentifier()
-            ];
 
-            if($request->hasFile('img')) {
-                $data['pole_img'] =$request->file('img')->store('polls', 'public');
+            foreach ($request->file('img') as $file) {
+
+                // $imageMeta = $this->imageManager->read($file)->setExif(new Collection(['Location'=> ['Latitude' => "80.124578","Longitude" => "81.031619"]]))->save();
+
+                $imageMeta = $this->imageManager->read($file);
+
+                $path = 'images/'.md5($file->hashName()). ".jpg";
+
+                $data = [
+                    'pole_img' => $path,
+                    'latitude' => $imageMeta->exif('Location')['Latitude'] ?? "00.0000",
+                    'longitude' => $imageMeta->exif('Location')['Longitude'] ?? "00.0000",
+                    'created_by' => auth()->user()->getAuthIdentifier()
+                ];
+
+                $imageMeta->toJpeg()->save(public_path($path));
+
+                RawPoll::create($data);
             }
-            
-            RawPoll::create($data);
 
-            return $this->sendSuccess('utility resource create successfully',[],StatusCodeEnum::OK);
+            return $this->sendSuccess('utility resource create successfully', [], StatusCodeEnum::OK);
 
         } catch (\Exception $e) {
 
